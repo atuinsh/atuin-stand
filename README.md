@@ -1,8 +1,8 @@
-# Atuin Stand
+# `atuin-stand
 
 > "stand" - a contiguous community of trees sufficiently uniform in composition, structure, age, size, class, distribution, spatial arrangement, condition, or location on a site of uniform quality to distinguish it from adjacent communities
 
-Atuin Stand is a set of libraries that implement a generic, ordered tree. The API and data format is designed to be consistent across all the implementations.
+`atuin-stand` is a set of libraries that implement a generic, ordered tree. The API and data format is designed to be consistent across all the implementations.
 
 Currently, there are implementations for:
 
@@ -32,24 +32,26 @@ child.getData();
 let tree = Tree::new();
 let root = tree.root();
 root.id(); // => NodeID::Root
-let child = root.createChild("id1").setData(some_data);
+let child = root.create_child("id1").set_data(some_data);
 child.id(); // => NodeID::id("id1");
-child.createChild("id2").setData(other_data);
-child.getData();
+child.create_child("id2").set_data(other_data);
+child.get_data();
 ```
 
 ### Elixir
 
 ```elixir
-tree = Tree.new();
-root = Tree.root(tree);
+alias AtuinStand, as: Tree
+
+tree = Tree.new()
+root = Tree.root(tree)
 root.id # => :root
-child = Tree.createChild(root, "id1")
-Tree.setData(child, some_data)
+child = Tree.create_child(root, "id1")
+Tree.set_data(child, some_data)
 child.id # => "id1"
-child2 = Node.createChild(child, "id2")
-Node.setData(child2, other_data)
-child2.getData()
+child2 = Node.create_child(child, "id2")
+Node.set_data(child2, other_data)
+child2.get_data()
 ```
 
 ## API Overview
