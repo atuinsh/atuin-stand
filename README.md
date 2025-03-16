@@ -49,7 +49,7 @@ root.id # => :root
 child = Tree.create_child(root, "id1")
 Tree.set_data(child, some_data)
 child.id # => "id1"
-child2 = Node.create_child(child, "id2")
+child2 = Tree.create_child(child, "id2")
 Node.set_data(child2, other_data)
 child2.get_data()
 ```
