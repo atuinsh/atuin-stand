@@ -1,4 +1,4 @@
-# `atuin-stand
+# `atuin-stand`
 
 > "stand" - a contiguous community of trees sufficiently uniform in composition, structure, age, size, class, distribution, spatial arrangement, condition, or location on a site of uniform quality to distinguish it from adjacent communities
 
@@ -8,7 +8,7 @@ Currently, there are implementations for:
 
 * TypeScript - [ package, docs ]
 * Rust - [ package, docs ]
-* Elixir - [ package, docs ]
+* Elixir - [ package, [docs](https://hexdocs.pm/atuin_stand/AtuinStand.Tree.html) ]
 
 Please see the documentation for each specific implementation for installation and usage instructions.
 
