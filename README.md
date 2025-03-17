@@ -8,7 +8,7 @@ Currently, there are implementations for:
 
 * TypeScript - [ package, docs ]
 * Rust - [ package, docs ]
-* Elixir - [ package, [docs](https://hexdocs.pm/atuin_stand/AtuinStand.Tree.html) ]
+* Elixir - [ [package](https://hex.pm/packages/atuin_stand), [docs](https://hexdocs.pm/atuin_stand/AtuinStand.html) ]
 
 Please see the documentation for each specific implementation for installation and usage instructions.
 
