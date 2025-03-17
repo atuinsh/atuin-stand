@@ -41,7 +41,7 @@ child.get_data();
 ### Elixir
 
 ```elixir
-alias AtuinStand, as: Tree
+alias AtuinStand.Tree
 
 tree = Tree.new()
 root = Tree.root(tree)
