@@ -4,23 +4,24 @@ defmodule AtuinStandTreeTest do
   doctest AtuinStand.Node
 
   alias AtuinStand.Tree
+  alias AtuinStand.Node
 
   setup do
     tree = Tree.new()
     root = Tree.root(tree)
-    node1 = Tree.create_child(root, "node1")
-    node2 = Tree.create_child(root, "node2")
-    node3 = Tree.create_child(root, "node3")
+    node1 = Node.create_child(root, "node1")
+    node2 = Node.create_child(root, "node2")
+    node3 = Node.create_child(root, "node3")
 
-    node4 = Tree.create_child(node1, "node4")
-    node5 = Tree.create_child(node1, "node5")
+    node4 = Node.create_child(node1, "node4")
+    node5 = Node.create_child(node1, "node5")
 
-    node6 = Tree.create_child(node2, "node6")
-    node7 = Tree.create_child(node2, "node7")
-    node8 = Tree.create_child(node2, "node8")
+    node6 = Node.create_child(node2, "node6")
+    node7 = Node.create_child(node2, "node7")
+    node8 = Node.create_child(node2, "node8")
 
-    node9 = Tree.create_child(node6, "node9")
-    node10 = Tree.create_child(node6, "node10")
+    node9 = Node.create_child(node6, "node9")
+    node10 = Node.create_child(node6, "node10")
 
     {:ok,
      tree: tree,
@@ -38,7 +39,7 @@ defmodule AtuinStandTreeTest do
   end
 
   test "does not allow duplicate IDs", context do
-    assert Tree.create_child(context.root, "node1") == {:error, :duplicate_id}
+    assert Node.create_child(context.root, "node1") == {:error, :duplicate_id}
   end
 
   test "gets node IDs", context do
@@ -55,9 +56,9 @@ defmodule AtuinStandTreeTest do
   end
 
   test "fetches nodes", context do
-    assert Tree.get_node(context.tree, :root) == context.root
-    assert Tree.get_node(context.tree, "node1") == context.node1
-    assert Tree.get_node(context.tree, "node10") == context.node10
-    assert Tree.get_node(context.tree, "node11") == {:error, :not_found}
+    assert Tree.node(context.tree, :root) == context.root
+    assert Tree.node(context.tree, "node1") == context.node1
+    assert Tree.node(context.tree, "node10") == context.node10
+    assert Tree.node(context.tree, "node11") == {:error, :not_found}
   end
 end

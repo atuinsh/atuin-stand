@@ -42,14 +42,15 @@ child.get_data(); // => some_data
 
 ```elixir
 alias AtuinStand.Tree
+alias AtuinStand.Node
 
 tree = Tree.new()
 root = Tree.root(tree)
 root.id # => :root
-child = Tree.create_child(root, "id1") |> Tree.set_data(child, some_data)
+child = Node.create_child(root, "id1") |> Tree.set_data(child, some_data)
 child.id # => "id1"
-child2 = Tree.create_child(child, "id2") |> Tree.set_data(child2, other_data)
-Tree.get_data(child) # => some_data
+child2 = Node.create_child(child, "id2") |> Tree.set_data(child2, other_data)
+Node.get_data(child) # => some_data
 ```
 
 ## API Overview

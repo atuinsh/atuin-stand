@@ -6,6 +6,13 @@ defmodule AtuinStand.Tree do
   AtuinStand is an implementation of the
   [`atuin-stand` project](https://github.com/atuinsh/atuin-stand).
 
+  ## API overview
+
+  The AtuinStand API is split into two main parts:
+
+  * `AtuinStand.Tree` - functions that operate on the entire tree
+  * `AtuinStand.Node` - functions that operate on a single node
+
   ## Creating a tree
 
   ```elixir
@@ -31,24 +38,24 @@ defmodule AtuinStand.Tree do
 
   ## Creating a new child node
 
-  To create a new node, call `AtuinStand.Tree.create_child/2` with the parent node and the ID of
+  To create a new node, call `AtuinStand.Node.create_child/2` with the parent node and the ID of
   the new node. Note that all node IDs must be strings. The one exception is the root node,
   which has the ID `:root`.
 
   ```elixir
-  child = AtuinStand.Tree.create_child(root, "child")
+  child = AtuinStand.Node.create_child(root, "child")
   child.id
   # => "child"
   ```
 
   Nodes in the tree are ordered, and by default, a newly created child node is placed at the end
   of its parent's children. If you'd like to place the child at a specific index within its siblings,
-  pass the index as the third argument to `create_child/2`.
+  pass the index as the third argument to `AtuinStand.Node.create_child/2`.
 
   ```elixir
-  child = AtuinStand.Tree.create_child(root, "child1")
-  child = AtuinStand.Tree.create_child(root, "child2", 0)
-  AtuinStand.Tree.get_children(root)
+  child = AtuinStand.Node.create_child(root, "child1")
+  child = AtuinStand.Node.create_child(root, "child2", 0)
+  AtuinStand.Node.children(root)
   # => [child2, child1]
   ```
 
@@ -61,37 +68,44 @@ defmodule AtuinStand.Tree do
   # => true
   ```
 
-  You can get a node by ID with `AtuinStand.Tree.get_node/2`.
+  You can get a node by ID with `AtuinStand.Tree.node/2`.
 
   ```elixir
-  node = AtuinStand.Tree.get_node(tree, "child")
+  node = AtuinStand.Tree.node(tree, "child")
   ```
 
   You can fetch all of the external nodes (leaves) or internal nodes (branches)
-  with `AtuinStand.Tree.get_external/1` and `AtuinStand.Tree.get_internal/1`, respectively.
-  These are aliased as `AtuinStand.Tree.get_leaves/1` and `AtuinStand.Tree.get_branches/1`.
+  with `AtuinStand.Tree.external_nodes/1` and `AtuinStand.Tree.internal_nodes/1`, respectively.
+  These are aliased as `AtuinStand.Tree.leaves/1` and `AtuinStand.Tree.branches/1`.
 
   ```elixir
-  leaves = AtuinStand.Tree.get_external(tree)
-  branches = AtuinStand.Tree.get_internal(tree)
+  leaves = AtuinStand.Tree.external_nodes(tree)
+  branches = AtuinStand.Tree.internal_nodes(tree)
   ```
 
   ## Manipulating nodes
 
-  You can move a node to a new parent with `AtuinStand.Tree.move_to/2`. By default,
+  ### Moving nodes
+
+  You can move a node to a new parent with `AtuinStand.Node.move_to/2`. By default,
   the node is moved to the end of the new parent's children. If you'd like to place the
   node at a specific index within its new siblings, pass the index as the second argument.
 
   ```elixir
   root = AtuinStand.Tree.root(tree)
-  child1 = AtuinStand.Tree.create_child(root, "child1")
-  child2 = AtuinStand.Tree.create_child(root, "child2")
-  AtuinStand.Tree.move_to(child2, child1)
-  AtuinStand.Tree.get_children(root)
+  child1 = AtuinStand.Node.create_child(root, "child1")
+  child2 = AtuinStand.Node.create_child(root, "child2")
+  AtuinStand.Node.move_to(child2, child1)
+  AtuinStand.Node.children(root)
   # => [child1]
-  AtuinStand.Tree.get_children(child1)
+  AtuinStand.Node.children(child1)
   # => [child2]
   ```
+
+  You can also move a node to be directly before or after another node using
+  `AtuinStand.Node.move_before/2` and `AtuinStand.Node.move_after/2`.
+
+  ### Deleting nodes
 
   To delete a node, you must specifcy what to do with that node's children, if it has
   any. The options are:
@@ -103,12 +117,12 @@ defmodule AtuinStand.Tree do
   ```elixir
   tree = AtuinStand.Tree.new()
   root = AtuinStand.Tree.root(tree)
-  child1 = AtuinStand.Tree.create_child(root, "child1")
-  child2 = AtuinStand.Tree.create_child(child1, "child2")
-  AtuinStand.Tree.delete(child1, :decline)
+  child1 = AtuinStand.Node.create_child(root, "child1")
+  child2 = AtuinStand.Node.create_child(child1, "child2")
+  AtuinStand.Node.delete(child1, :decline)
   # => {:error, :has_children}
-  AtuinStand.Tree.delete(child1, :cascade)
-  AtuinStand.Tree.get_nodes(tree)
+  AtuinStand.Node.delete(child1, :cascade)
+  AtuinStand.Tree.nodes(tree)
   # => [root]
   ```
 
@@ -116,31 +130,33 @@ defmodule AtuinStand.Tree do
 
   There are several functions for traversing the tree:
 
-  * [AtuinStand.Tree.get_nodes(tree, order)](`AtuinStand.Tree.get_nodes/2`)
-  * [AtuinStand.Tree.get_children(node)](`AtuinStand.Tree.get_children/1`)
-  * [AtuinStand.Tree.get_parent(node)](`AtuinStand.Tree.get_parent/1`)
-  * [AtuinStand.Tree.get_siblings(node)](`AtuinStand.Tree.get_siblings/1`)
-  * [AtuinStand.Tree.get_descendants(node)](`AtuinStand.Tree.get_descendants/2`)
-  * [AtuinStand.Tree.get_ancestors(node)](`AtuinStand.Tree.get_ancestors/1`)
+  * [`AtuinStand.Tree.nodes(tree, order)`](`AtuinStand.Tree.nodes/2`)
+  * [`AtuinStand.Node.children(node)`](`AtuinStand.Node.children/1`)
+  * [`AtuinStand.Node.parent(node)`](`AtuinStand.Node.parent/1`)
+  * [`AtuinStand.Node.siblings(node)`](`AtuinStand.Node.siblings/1`)
+  * [`AtuinStand.Node.descendants(node, order)`](`AtuinStand.Node.descendants/2`)
+  * [`AtuinStand.Node.ancestors(node)`](`AtuinStand.Node.ancestors/1`)
+
+  See the `AtuinStand.Node` module for more information on these functions.
 
   ## Associated data
 
-  You can set and get user-defined data with `AtuinStand.Tree.set_data/2` and
-  `AtuinStand.Tree.get_data/1`. To remain compatible with other `atuin-stand`
+  You can set and get user-defined data with `AtuinStand.Node.set_data/2` and
+  `AtuinStand.Node.get_data/1`. To remain compatible with other `atuin-stand`
   implementations, the data must be a JSON-serializable map.
 
   It's recommended to use string keys for the data, as during deserialization
   all keys are converted to strings.
 
   ```elixir
-  AtuinStand.Tree.set_data(node, %{"name" => "Node 1"})
-  AtuinStand.Tree.get_data(node)
+  AtuinStand.Node.set_data(node, %{"name" => "Node 1"})
+  AtuinStand.Node.get_data(node)
   # => %{"name" => "Node 1"}
   ```
   """
 
-  alias AtuinStand.Internals
   alias AtuinStand.Node
+  alias AtuinStand.Internals
 
   defstruct [:pid]
 
@@ -183,14 +199,14 @@ defmodule AtuinStand.Tree do
 
       iex> tree = AtuinStand.Tree.new()
       iex> root = AtuinStand.Tree.root(tree)
-      iex> child = AtuinStand.Tree.create_child(root, "child")
-      iex> AtuinStand.Tree.set_data(child, %{name: "Child"})
+      iex> child = AtuinStand.Node.create_child(root, "child")
+      iex> AtuinStand.Node.set_data(child, %{name: "Child"})
       iex> tree_data = AtuinStand.Tree.serialize(tree)
       iex> AtuinStand.Tree.destroy(tree)
       iex> tree = AtuinStand.Tree.deserialize(tree_data)
-      iex> child = AtuinStand.Tree.get_node(tree, "child")
+      iex> child = AtuinStand.Tree.node(tree, "child")
       %AtuinStand.Node{id: "child", tree: tree}
-      iex> AtuinStand.Tree.get_data(child)
+      iex> AtuinStand.Node.get_data(child)
       %{"name" => "Child"}
   """
   @spec deserialize(data :: String.t()) :: t() | {:error, term()}
@@ -234,37 +250,6 @@ defmodule AtuinStand.Tree do
   end
 
   @doc """
-  Creates a new child node with the given ID.
-
-  User-created nodes must have unique, string IDs. Returns `{:error, :duplicate_id}`
-  if a node with the given ID already exists in the tree. Returns `{:error, :not_found}`
-  if the parent node is not found in the tree.
-
-  ## Examples
-
-      iex> tree = AtuinStand.Tree.new()
-      iex> root = AtuinStand.Tree.root(tree)
-      iex> AtuinStand.Tree.create_child(root, "node1")
-      %AtuinStand.Node{id: "node1", tree: tree}
-      iex> AtuinStand.Tree.create_child(root, "node1")
-      {:error, :duplicate_id}
-  """
-  @spec create_child(node :: Node.t(), id :: String.t()) :: Node.t() | {:error, atom()}
-  def create_child(%Node{tree: tree} = parent, id) when is_binary(id) do
-    func = fn state ->
-      Internals.create_child(state, parent.id, id)
-    end
-
-    case Agent.get_and_update(tree.pid, func) do
-      :ok ->
-        %Node{id: id, tree: tree}
-
-      {:error, error} ->
-        {:error, error}
-    end
-  end
-
-  @doc """
   Returns the node with the given ID.
 
   Returns `{:error, :not_found}` if the node does not exist.
@@ -273,13 +258,13 @@ defmodule AtuinStand.Tree do
 
       iex> tree = AtuinStand.Tree.new()
       iex> root = AtuinStand.Tree.root(tree)
-      iex> AtuinStand.Tree.create_child(root, "node1")
-      iex> node1 = AtuinStand.Tree.get_node(tree, "node1")
+      iex> AtuinStand.Node.create_child(root, "node1")
+      iex> node1 = AtuinStand.Tree.node(tree, "node1")
       iex> node1.id
       "node1"
   """
-  @spec get_node(tree :: t(), id :: atom() | String.t()) :: Node.t() | {:error, atom()}
-  def get_node(tree, id) do
+  @spec node(tree :: t(), id :: atom() | String.t()) :: Node.t() | {:error, atom()}
+  def node(tree, id) do
     case {id, has_node(tree, id)} do
       {:root, _} ->
         %Node{id: :root, tree: tree}
@@ -303,7 +288,7 @@ defmodule AtuinStand.Tree do
       iex> AtuinStand.Tree.has_node(tree, "node1")
       false
       iex> root = AtuinStand.Tree.root(tree)
-      iex> AtuinStand.Tree.create_child(root, "node1")
+      iex> AtuinStand.Node.create_child(root, "node1")
       iex> AtuinStand.Tree.has_node(tree, "node1")
       true
   """
@@ -328,17 +313,17 @@ defmodule AtuinStand.Tree do
 
       iex> tree = AtuinStand.Tree.new()
       iex> root = AtuinStand.Tree.root(tree)
-      iex> node1 = AtuinStand.Tree.create_child(root, "node1")
-      iex> node2 = AtuinStand.Tree.create_child(root, "node2")
-      iex> node3 = AtuinStand.Tree.create_child(root, "node3")
-      iex> node4 = AtuinStand.Tree.create_child(node2, "node4")
-      iex> AtuinStand.Tree.get_nodes(tree, :dfs)
+      iex> node1 = AtuinStand.Node.create_child(root, "node1")
+      iex> node2 = AtuinStand.Node.create_child(root, "node2")
+      iex> node3 = AtuinStand.Node.create_child(root, "node3")
+      iex> node4 = AtuinStand.Node.create_child(node2, "node4")
+      iex> AtuinStand.Tree.nodes(tree, :dfs)
       [root, node1, node2, node4, node3]
-      iex> AtuinStand.Tree.get_nodes(tree, :bfs)
+      iex> AtuinStand.Tree.nodes(tree, :bfs)
       [root, node1, node2, node3, node4]
   """
-  @spec get_nodes(tree :: t(), order :: :dfs | :bfs) :: [Node.t()]
-  def get_nodes(tree, order \\ :dfs) do
+  @spec nodes(tree :: t(), order :: :dfs | :bfs) :: [Node.t()]
+  def nodes(tree, order \\ :dfs) do
     Agent.get(tree.pid, &Internals.get_nodes_in_order(&1, order, :root))
     |> Enum.map(fn node -> %Node{id: node, tree: tree} end)
   end
@@ -354,19 +339,19 @@ defmodule AtuinStand.Tree do
 
       iex> tree = AtuinStand.Tree.new()
       iex> root = AtuinStand.Tree.root(tree)
-      iex> AtuinStand.Tree.get_external(tree)
+      iex> AtuinStand.Tree.external_nodes(tree)
       [root]
-      iex> node1 = AtuinStand.Tree.create_child(root, "node1")
-      iex> node2 = AtuinStand.Tree.create_child(root, "node2")
-      iex> node3 = AtuinStand.Tree.create_child(root, "node3")
-      iex> node4 = AtuinStand.Tree.create_child(node2, "node4")
-      iex> AtuinStand.Tree.get_external(tree, :dfs)
+      iex> node1 = AtuinStand.Node.create_child(root, "node1")
+      iex> node2 = AtuinStand.Node.create_child(root, "node2")
+      iex> node3 = AtuinStand.Node.create_child(root, "node3")
+      iex> node4 = AtuinStand.Node.create_child(node2, "node4")
+      iex> AtuinStand.Tree.external_nodes(tree, :dfs)
       [node1, node4, node3]
-      iex> AtuinStand.Tree.get_external(tree, :bfs)
+      iex> AtuinStand.Tree.external_nodes(tree, :bfs)
       [node1, node3, node4]
   """
-  @spec get_external(tree :: t(), order :: :dfs | :bfs) :: [Node.t()]
-  def get_external(tree, order \\ :dfs) do
+  @spec external_nodes(tree :: t(), order :: :dfs | :bfs) :: [Node.t()]
+  def external_nodes(tree, order \\ :dfs) do
     Agent.get(tree.pid, &Internals.get_leaves(&1, order))
     |> Enum.map(fn node -> %Node{id: node, tree: tree} end)
   end
@@ -382,185 +367,31 @@ defmodule AtuinStand.Tree do
 
       iex> tree = AtuinStand.Tree.new()
       iex> root = AtuinStand.Tree.root(tree)
-      iex> node1 = AtuinStand.Tree.create_child(root, "node1")
-      iex> node2 = AtuinStand.Tree.create_child(root, "node2")
-      iex> node3 = AtuinStand.Tree.create_child(node1, "node3")
-      iex> _ = AtuinStand.Tree.create_child(node2, "node4")
-      iex> _ = AtuinStand.Tree.create_child(node3, "node5")
-      iex> AtuinStand.Tree.get_internal(tree, :dfs)
+      iex> node1 = AtuinStand.Node.create_child(root, "node1")
+      iex> node2 = AtuinStand.Node.create_child(root, "node2")
+      iex> node3 = AtuinStand.Node.create_child(node1, "node3")
+      iex> _ = AtuinStand.Node.create_child(node2, "node4")
+      iex> _ = AtuinStand.Node.create_child(node3, "node5")
+      iex> AtuinStand.Tree.internal_nodes(tree, :dfs)
       [root, node1, node3, node2]
-      iex> AtuinStand.Tree.get_internal(tree, :bfs)
+      iex> AtuinStand.Tree.internal_nodes(tree, :bfs)
       [root, node1, node2, node3]
   """
-  @spec get_internal(tree :: t(), order :: :dfs | :bfs) :: [Node.t()]
-  def get_internal(tree, order \\ :dfs) do
+  @spec internal_nodes(tree :: t(), order :: :dfs | :bfs) :: [Node.t()]
+  def internal_nodes(tree, order \\ :dfs) do
     Agent.get(tree.pid, &Internals.get_branches(&1, order))
     |> Enum.map(fn node -> %Node{id: node, tree: tree} end)
   end
 
   @doc """
-  An alias for `get_external/1`.
+  An alias for `external_nodes/1`.
   """
-  def get_leaves(tree), do: get_external(tree)
+  def leaves(tree), do: external_nodes(tree)
 
   @doc """
-  An alias for `get_internal/1`.
+  An alias for `internal_nodes/1`.
   """
-  def get_branches(tree), do: get_internal(tree)
-
-  @doc """
-  Returns the parent of the given node.
-
-  Returns `{:error, :not_found}` if the node is not found in the tree.
-  Returns `{:error, :invalid_node}` if the node is the root node.
-
-  ## Examples
-
-      iex> tree = AtuinStand.Tree.new()
-      iex> root = AtuinStand.Tree.root(tree)
-      iex> AtuinStand.Tree.get_parent(root)
-      {:error, :invalid_node}
-      iex> node1 = AtuinStand.Tree.create_child(root, "node1")
-      iex> AtuinStand.Tree.get_parent(node1)
-      %AtuinStand.Node{id: :root, tree: tree}
-      iex> fake_node = %AtuinStand.Node{id: "fake", tree: tree}
-      iex> AtuinStand.Tree.get_parent(fake_node)
-      {:error, :not_found}
-  """
-  @spec get_parent(node :: Node.t()) :: Node.t() | {:error, atom()}
-  def get_parent(%Node{id: :root}), do: {:error, :invalid_node}
-
-  def get_parent(%Node{id: id, tree: tree}) do
-    case Agent.get(tree.pid, &Internals.get_parent(&1, id)) do
-      {:ok, parent} -> %Node{id: parent, tree: tree}
-      {:error, reason} -> {:error, reason}
-    end
-  end
-
-  @doc """
-  Returns a list of all children of the given node.
-
-  Returns `{:error, :not_found}` if the node is not found in the tree.
-
-  ## Examples
-
-      iex> tree = AtuinStand.Tree.new()
-      iex> root = AtuinStand.Tree.root(tree)
-      iex> node1 = AtuinStand.Tree.create_child(root, "node1")
-      iex> node2 = AtuinStand.Tree.create_child(root, "node2")
-      iex> AtuinStand.Tree.get_children(root)
-      [node1, node2]
-      iex> AtuinStand.Tree.get_children(node1)
-      []
-  """
-  def get_children(%Node{id: id, tree: tree}) do
-    case Agent.get(tree.pid, &Internals.get_children(&1, id)) do
-      {:error, reason} -> {:error, reason}
-      children -> Enum.map(children, fn child -> %Node{id: child, tree: tree} end)
-    end
-  end
-
-  @doc """
-  Returns a list of all siblings (other nodes with the same parent) of the given node.
-
-  Returns `{:error, :not_found}` if the node is not found in the tree.
-
-  ## Examples
-
-      iex> tree = AtuinStand.Tree.new()
-      iex> root = AtuinStand.Tree.root(tree)
-      iex> node1 = AtuinStand.Tree.create_child(root, "node1")
-      iex> node2 = AtuinStand.Tree.create_child(root, "node2")
-      iex> node3 = AtuinStand.Tree.create_child(root, "node3")
-      iex> AtuinStand.Tree.get_siblings(node1)
-      [node2, node3]
-  """
-  @spec get_siblings(node :: Node.t()) :: [Node.t()] | {:error, atom()}
-  def get_siblings(%Node{id: id, tree: tree}) do
-    case Agent.get(tree.pid, &Internals.get_siblings(&1, id)) do
-      {:error, reason} -> {:error, reason}
-      siblings -> Enum.map(siblings, fn sibling -> %Node{id: sibling, tree: tree} end)
-    end
-  end
-
-  @doc """
-  Returns a list of all descendants of the given node.
-
-  Provide `:dfs` or `:bfs` as an optional argument to return the results in
-  depth-first or breadth-first order, respectively. Defaults to `:dfs`.
-
-  Returns `{:error, :not_found}` if the node is not found in the tree.
-
-  ## Examples
-
-      iex> tree = AtuinStand.Tree.new()
-      iex> root = AtuinStand.Tree.root(tree)
-      iex> node1 = AtuinStand.Tree.create_child(root, "node1")
-      iex> node2 = AtuinStand.Tree.create_child(node1, "node2")
-      iex> node3 = AtuinStand.Tree.create_child(node2, "node3")
-      iex> node4 = AtuinStand.Tree.create_child(root, "node4")
-      iex> AtuinStand.Tree.get_descendants(node1, :dfs)
-      [node2, node3]
-      iex> AtuinStand.Tree.get_descendants(root, :bfs)
-      [node1, node4, node2, node3]
-  """
-  @spec get_descendants(node :: Node.t(), order :: :dfs | :bfs) :: [Node.t()] | {:error, atom()}
-  def get_descendants(%Node{id: id, tree: tree}, order \\ :dfs) do
-    case Agent.get(tree.pid, &Internals.get_descendants(&1, id, order)) do
-      {:error, reason} -> {:error, reason}
-      descendants -> Enum.map(descendants, fn child -> %Node{id: child, tree: tree} end)
-    end
-  end
-
-  @doc """
-  Returns a list of all ancestors of the given node, starting at the node's parent and
-  ending at the root node (inclusive).
-
-  Returns `{:error, :not_found}` if the node is not found in the tree.
-
-  ## Examples
-
-      iex> tree = AtuinStand.Tree.new()
-      iex> root = AtuinStand.Tree.root(tree)
-      iex> node1 = AtuinStand.Tree.create_child(root, "node1")
-      iex> node2 = AtuinStand.Tree.create_child(node1, "node2")
-      iex> node3 = AtuinStand.Tree.create_child(node2, "node3")
-      iex> AtuinStand.Tree.get_ancestors(node3)
-      [node2, node1, root]
-  """
-  @spec get_ancestors(node :: Node.t()) :: [Node.t()] | {:error, atom()}
-  def get_ancestors(%Node{id: id, tree: tree}) do
-    Agent.get(tree.pid, &Internals.get_ancestors(&1, id))
-    |> Enum.map(fn node -> %Node{id: node, tree: tree} end)
-  end
-
-  @doc """
-  Returns the depth of the given node.
-
-  For any node, the depth is the number of edges on the path to the root node.
-  The root node has a depth of 0, and every other node has a depth of 1 + its parent's depth.
-
-  Equivalent to `length(AtuinStand.Tree.get_ancestors(node))`.
-
-  Returns `{:error, :not_found}` if the node is not found in the tree.
-
-  ## Examples
-
-      iex> tree = AtuinStand.Tree.new()
-      iex> root = AtuinStand.Tree.root(tree)
-      iex> AtuinStand.Tree.node_depth(root)
-      0
-      iex> node1 = AtuinStand.Tree.create_child(root, "node1")
-      iex> AtuinStand.Tree.node_depth(node1)
-      1
-      iex> node2 = AtuinStand.Tree.create_child(node1, "node2")
-      iex> AtuinStand.Tree.node_depth(node2)
-      2
-  """
-  @spec node_depth(node :: Node.t()) :: non_neg_integer() | {:error, atom()}
-  def node_depth(%Node{id: id, tree: tree}) do
-    Agent.get(tree.pid, &Internals.get_node_depth(&1, id))
-  end
+  def branches(tree), do: internal_nodes(tree)
 
   @doc """
   Returns the number of nodes in the tree, including the root node.
@@ -571,71 +402,15 @@ defmodule AtuinStand.Tree do
       iex> AtuinStand.Tree.size(tree)
       1
       iex> root = AtuinStand.Tree.root(tree)
-      iex> AtuinStand.Tree.create_child(root, "node1")
+      iex> AtuinStand.Node.create_child(root, "node1")
       iex> AtuinStand.Tree.size(tree)
       2
-      iex> AtuinStand.Tree.create_child(root, "node2")
+      iex> AtuinStand.Node.create_child(root, "node2")
       iex> AtuinStand.Tree.size(tree)
       3
   """
   @spec size(tree :: t()) :: non_neg_integer()
   def size(tree) do
     Agent.get(tree.pid, &Internals.size(&1))
-  end
-
-  @doc """
-  Returns the user-defined data associated with the node.
-
-  If the node is not found, returns `{:error, :not_found}`.
-
-  ## Examples
-
-      iex> tree = AtuinStand.Tree.new()
-      iex> root = AtuinStand.Tree.root(tree)
-      iex> AtuinStand.Tree.create_child(root, "node1")
-      iex> AtuinStand.Tree.get_node(tree, "node1")
-      ...> |> AtuinStand.Tree.set_data(%{"name" => "Node 1"})
-      ...> |> AtuinStand.Tree.get_data()
-      %{"name" => "Node 1"}
-  """
-  @spec get_data(node :: Node.t()) :: map() | {:error, atom()}
-  def get_data(%Node{} = node) do
-    case Agent.get(node.tree.pid, &Internals.get_node_data(&1, node.id)) do
-      {:ok, data} -> data
-      {:error, reason} -> {:error, reason}
-    end
-  end
-
-  @doc """
-  Sets the user-defined data associated with the node. Returns the node.
-
-  The data must be a map, otherwise returns `{:error, :invalid_data}`. When the
-  tree is serialized to JSON, the data is serialized as well, so any atom keys
-  will be converted to strings.
-
-  If the node is not found, returns `{:error, :not_found}`.
-
-  ## Examples
-
-      iex> tree = AtuinStand.Tree.new()
-      iex> root = AtuinStand.Tree.root(tree)
-      iex> AtuinStand.Tree.create_child(root, "node1")
-      iex> AtuinStand.Tree.get_node(tree, "node1")
-      ...> |> AtuinStand.Tree.set_data(%{"name" => "Node 1"})
-      ...> |> AtuinStand.Tree.get_data()
-      %{"name" => "Node 1"}
-  """
-  @spec set_data(node :: Node.t(), data :: map()) :: Node.t() | {:error, atom()}
-  def set_data(%Node{} = node, data) when is_map(data) do
-    Agent.get_and_update(node.tree.pid, fn state ->
-      case Internals.set_node_data(state, node.id, data) do
-        {:ok, state} -> {node, state}
-        {{:error, reason}, state} -> {{:error, reason}, state}
-      end
-    end)
-  end
-
-  def set_data(_node, _data) do
-    {:error, :invalid_data}
   end
 end
