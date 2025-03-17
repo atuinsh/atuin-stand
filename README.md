@@ -64,7 +64,6 @@ Each library supports the following operations, although the exact API varies sl
 * `getLeaves()` - get a list of all the leaf (external) nodes
 * `getBranches(order)` - get a list of all the branch (internal) nodes
 * `size()` - return the number of nodes in the tree
-* `deleteNode(id, strategy)` - delete a node, specifying what to do with its children
 * `onChange()` - subscribe to changes in the tree
 
 ### Node
