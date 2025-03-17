@@ -38,6 +38,8 @@ defmodule AtuinStand do
   ```
 
   The data exported by `AtuinStand.Tree.export/1` can be safely serialized to JSON.
+  Keep in mind that any keys in user-defined data will be serialized as strings,
+  even if they were originally created as atoms.
 
   ## Getting the root node
 
