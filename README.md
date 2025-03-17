@@ -122,5 +122,5 @@ type TreeNode<UserData> = {
 Serialization and deserialization is handled differently per implementation:
 
 * Rust: `serde_json`
-* TypeScript: `JSON.stringify`
-* Elixir: built-in `JSON` or `Jason`
+* TypeScript: exports as an object, use `JSON` or any other JSON library for serialization
+* Elixir: exports as a map, use Elixir's `JSON` or any other JSON library for serialization
