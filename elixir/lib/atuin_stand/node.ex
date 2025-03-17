@@ -5,6 +5,10 @@ defmodule AtuinStand.Node do
   You can access the node's ID via the `id` property, and the tree it belongs to
   via the `tree` property.
 
+  Since `Node` structs only hold a reference to their containing tree, nodes
+  might be invalidated if the tree is manipulated such that the node is removed.
+  In this case, the `Node` functions will return `{:error, :not_found}`.
+
   For a more detailed overview of the API, see `AtuinStand`.
 
   ## Examples
@@ -79,8 +83,8 @@ defmodule AtuinStand.Node do
 
   def parent(%Node{id: id, tree: tree}) do
     case Agent.get(tree.pid, &Internals.get_parent(&1, id)) do
-      {:ok, parent} -> %Node{id: parent, tree: tree}
       {:error, reason} -> {:error, reason}
+      parent -> %Node{id: parent, tree: tree}
     end
   end
 
@@ -263,5 +267,167 @@ defmodule AtuinStand.Node do
 
   def set_data(_node, _data) do
     {:error, :invalid_data}
+  end
+
+  @doc """
+  Moves the node to a new parent node.
+
+  Returns `{:error, :invalid_operation}` if the node is the root node or if the move
+  would create a cycle in the tree. Returns `{:error, :not_found}` if the either node
+  is not found in the tree.
+
+  Provide an optional `index` to specify the position of the node in the new parent's
+  child list. The node will be inserted at the end if no index is provided.
+
+  ## Examples
+
+      iex> tree = AtuinStand.Tree.new()
+      iex> root = AtuinStand.Tree.root(tree)
+      iex> node1 = AtuinStand.Node.create_child(root, "node1")
+      iex> node2 = AtuinStand.Node.create_child(node1, "node2")
+      iex> node3 = AtuinStand.Node.create_child(node2, "node3")
+      iex> AtuinStand.Node.move_to(node1, node3)
+      {:error, :invalid_operation}
+      iex> AtuinStand.Node.move_to(node2, root)
+      iex> AtuinStand.Node.children(root)
+      [node1, node2]
+      iex> AtuinStand.Node.move_to(node3, root, 1)
+      iex> AtuinStand.Node.children(root)
+      [node1, node3, node2]
+      iex> AtuinStand.Node.move_to(node2, root, 1)
+      iex> AtuinStand.Node.children(root)
+      [node1, node2, node3]
+  """
+  @spec move_to(node :: Node.t(), new_parent :: Node.t(), index :: non_neg_integer() | nil) ::
+          Node.t() | {:error, atom()}
+  def move_to(%Node{} = node, %Node{} = new_parent, index \\ nil) do
+    Agent.get_and_update(node.tree.pid, fn state ->
+      case Internals.update_node(state, node.id, new_parent.id, index) do
+        {:ok, state} -> {node, state}
+        {{:error, reason}, state} -> {{:error, reason}, state}
+      end
+    end)
+  end
+
+  @doc """
+  Moves the node to a new position amongst its siblings.
+
+  Returns `{:error, :invalid_operation}` if the node is the root node. Returns
+  `{:error, :not_found}` if the node is not found in the tree.
+
+  ## Examples
+
+      iex> tree = AtuinStand.Tree.new()
+      iex> root = AtuinStand.Tree.root(tree)
+      iex> node1 = AtuinStand.Node.create_child(root, "node1")
+      iex> node2 = AtuinStand.Node.create_child(root, "node2")
+      iex> node3 = AtuinStand.Node.create_child(root, "node3")
+      iex> AtuinStand.Node.reposition(node2, 0)
+      iex> AtuinStand.Node.children(root)
+      [node2, node1, node3]
+      iex> AtuinStand.Node.reposition(node2, 2)
+      iex> AtuinStand.Node.children(root)
+      [node1, node3, node2]
+  """
+  @spec reposition(node :: Node.t(), index :: non_neg_integer()) :: Node.t() | {:error, atom()}
+  def reposition(%Node{} = node, index) do
+    Agent.get_and_update(node.tree.pid, fn state ->
+      case Internals.update_node_same_parent(state, node.id, index) do
+        {:ok, state} -> {node, state}
+        {{:error, reason}, state} -> {{:error, reason}, state}
+      end
+    end)
+  end
+
+  @doc """
+  Moves the node before the given node.
+
+  Returns `{:error, :invalid_operation}` if the node is the root node or if the move would create
+  a cycle in the tree. Returns `{:error, :not_found}` if either node is not found in the tree.
+
+  ## Examples
+
+      iex> tree = AtuinStand.Tree.new()
+      iex> root = AtuinStand.Tree.root(tree)
+      iex> node1 = AtuinStand.Node.create_child(root, "node1")
+      iex> node2 = AtuinStand.Node.create_child(root, "node2")
+      iex> node3 = AtuinStand.Node.create_child(root, "node3")
+      iex> AtuinStand.Node.move_before(node3, node1)
+      iex> AtuinStand.Node.children(root)
+      [node3, node1, node2]
+  """
+  @spec move_before(node :: Node.t(), other :: Node.t()) :: Node.t() | {:error, atom()}
+  def move_before(%Node{} = node, %Node{} = other) do
+    move_relative(node, other, 0)
+  end
+
+  @doc """
+  Moves the node after the given node.
+
+  Returns `{:error, :invalid_operation}` if the node is the root node or if the move would create
+  a cycle in the tree. Returns `{:error, :not_found}` if either node is not found in the tree.
+
+  ## Examples
+
+      iex> tree = AtuinStand.Tree.new()
+      iex> root = AtuinStand.Tree.root(tree)
+      iex> node1 = AtuinStand.Node.create_child(root, "node1")
+      iex> node2 = AtuinStand.Node.create_child(root, "node2")
+      iex> node3 = AtuinStand.Node.create_child(root, "node3")
+      iex> AtuinStand.Node.move_after(node1, node3)
+      iex> AtuinStand.Node.children(root)
+      [node2, node3, node1]
+  """
+  @spec move_after(node :: Node.t(), other :: Node.t()) :: Node.t() | {:error, atom()}
+  def move_after(%Node{} = node, %Node{} = other) do
+    move_relative(node, other, 1)
+  end
+
+  @doc """
+  Deletes the node from the tree.
+
+  Returns `{:error, :invalid_operation}` if the node is the root node. Returns
+  `{:error, :not_found}` if the node is not found in the tree.
+
+  Provide a `strategy` to specify what to do with the node's children:
+
+  * `:refuse` - return `{:error, :has_children}` if the node being deleted has children
+  * `:cascade` - recursively delete the node and all of its children
+  * `:reattach` - move the node's children to the node's parent before deleting it
+
+  ## Examples
+
+      iex> tree = AtuinStand.Tree.new()
+      iex> root = AtuinStand.Tree.root(tree)
+      iex> node1 = AtuinStand.Node.create_child(root, "node1")
+      iex> node2 = AtuinStand.Node.create_child(node1, "node2")
+      iex> node3 = AtuinStand.Node.create_child(node2, "node3")
+      iex> AtuinStand.Node.delete(node1, :refuse)
+      {:error, :has_children}
+      iex> AtuinStand.Node.delete(node1, :reattach)
+      iex> AtuinStand.Node.descendants(root)
+      [node2, node3]
+      iex> AtuinStand.Node.delete(node2, :cascade)
+      iex> AtuinStand.Node.descendants(root)
+      []
+  """
+  @spec delete(node :: Node.t(), strategy :: :refuse | :cascade | :reattach) ::
+          Node.t() | {:error, atom()}
+  def delete(%Node{} = node, strategy \\ :refuse) do
+    Agent.get_and_update(node.tree.pid, fn state ->
+      case Internals.delete_node(state, node.id, strategy) do
+        {:ok, state} -> {node, state}
+        {{:error, reason}, state} -> {{:error, reason}, state}
+      end
+    end)
+  end
+
+  defp move_relative(%Node{} = node, %Node{} = other, offset) do
+    Agent.get_and_update(node.tree.pid, fn state ->
+      case Internals.move_relative(state, node.id, other.id, offset) do
+        {:ok, state} -> {node, state}
+        {{:error, reason}, state} -> {{:error, reason}, state}
+      end
+    end)
   end
 end

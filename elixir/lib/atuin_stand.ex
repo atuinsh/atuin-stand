@@ -98,6 +98,25 @@ defmodule AtuinStand do
   branches = AtuinStand.Tree.internal_nodes(tree)
   ```
 
+  Finally, you can fetch all the nodes in a tree with `AtuinStand.Tree.nodes/2`.
+
+  ```elixir
+  nodes = AtuinStand.Tree.nodes(tree, :dfs) # or :bfs
+  ```
+
+  ### Traversing the tree
+
+  There are several functions for traversing the tree from a given node:
+
+  * [`AtuinStand.Node.parent(node)`](`AtuinStand.Node.parent/1`)
+  * [`AtuinStand.Node.children(node)`](`AtuinStand.Node.children/1`)
+  * [`AtuinStand.Node.siblings(node)`](`AtuinStand.Node.siblings/1`)
+  * [`AtuinStand.Node.ancestors(node)`](`AtuinStand.Node.ancestors/1`)
+  * [`AtuinStand.Node.descendants(node, order)`](`AtuinStand.Node.descendants/2`)
+
+  See the `AtuinStand.Node` module for more information on these functions.
+
+
   ## Manipulating nodes
 
   ### Moving nodes
@@ -118,7 +137,8 @@ defmodule AtuinStand do
   ```
 
   You can also move a node to be directly before or after another node using
-  `AtuinStand.Node.move_before/2` and `AtuinStand.Node.move_after/2`.
+  `AtuinStand.Node.move_before/2` and `AtuinStand.Node.move_after/2`, and you can reposition
+  a node within its siblings using `AtuinStand.Node.reposition/2`.
 
   ### Deleting nodes
 
@@ -140,19 +160,6 @@ defmodule AtuinStand do
   AtuinStand.Tree.nodes(tree)
   # => [root]
   ```
-
-  ## Traversing the tree
-
-  There are several functions for traversing the tree:
-
-  * [`AtuinStand.Tree.nodes(tree, order)`](`AtuinStand.Tree.nodes/2`)
-  * [`AtuinStand.Node.children(node)`](`AtuinStand.Node.children/1`)
-  * [`AtuinStand.Node.parent(node)`](`AtuinStand.Node.parent/1`)
-  * [`AtuinStand.Node.siblings(node)`](`AtuinStand.Node.siblings/1`)
-  * [`AtuinStand.Node.descendants(node, order)`](`AtuinStand.Node.descendants/2`)
-  * [`AtuinStand.Node.ancestors(node)`](`AtuinStand.Node.ancestors/1`)
-
-  See the `AtuinStand.Node` module for more information on these functions.
 
   ## Associated data
 

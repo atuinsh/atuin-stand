@@ -81,9 +81,10 @@ Each library supports the following operations, although the exact API varies sl
 * `ancestors()` - get a list of nodes from this node to the root of the tree
 * `descendents(order)` - get a list of all child nodes of this node, recursively, in the given traversal order
 * `depth()` - a count of a node's ancestors
-* `moveTo(other, index?)` - move this node so it's parent is now `other`, placed at the given index
+* `moveTo(other, index?)` - move this node so its parent is now `other`, placed at the given index
 * `moveBefore(other)` - move this node to be the sibling immediately preceeding `other`
 * `moveAfter(other)` - move this node to be the sibling immediately after `other`
+* `reposition(node, index)` - move this node to a different location amongst its siblings
 * `delete(strategy)` - delete this node, specifying what to do with its children
 
 ### Tree Traversal
