@@ -41,6 +41,17 @@ defmodule AtuinStand.Tree do
   # => "child"
   ```
 
+  Nodes in the tree are ordered, and by default, a newly created child node is placed at the end
+  of its parent's children. If you'd like to place the child at a specific index within its siblings,
+  pass the index as the third argument to `create_child/2`.
+
+  ```elixir
+  child = AtuinStand.Tree.create_child(root, "child1")
+  child = AtuinStand.Tree.create_child(root, "child2", 0)
+  AtuinStand.Tree.get_children(root)
+  # => [child2, child1]
+  ```
+
   ## Querying nodes
 
   You can check if a node exists with `AtuinStand.Tree.has_node/2`.
@@ -63,6 +74,42 @@ defmodule AtuinStand.Tree do
   ```elixir
   leaves = AtuinStand.Tree.get_external(tree)
   branches = AtuinStand.Tree.get_internal(tree)
+  ```
+
+  ## Manipulating nodes
+
+  You can move a node to a new parent with `AtuinStand.Tree.move_to/2`. By default,
+  the node is moved to the end of the new parent's children. If you'd like to place the
+  node at a specific index within its new siblings, pass the index as the second argument.
+
+  ```elixir
+  root = AtuinStand.Tree.root(tree)
+  child1 = AtuinStand.Tree.create_child(root, "child1")
+  child2 = AtuinStand.Tree.create_child(root, "child2")
+  AtuinStand.Tree.move_to(child2, child1)
+  AtuinStand.Tree.get_children(root)
+  # => [child1]
+  AtuinStand.Tree.get_children(child1)
+  # => [child2]
+  ```
+
+  To delete a node, you must specifcy what to do with that node's children, if it has
+  any. The options are:
+
+  * `:refuse` - return an error if the node being deleted has children
+  * `:cascade` - recursively delete the node and all of its children
+  * `:reattach` - move the node's children to the node's parent before deleting it
+
+  ```elixir
+  tree = AtuinStand.Tree.new()
+  root = AtuinStand.Tree.root(tree)
+  child1 = AtuinStand.Tree.create_child(root, "child1")
+  child2 = AtuinStand.Tree.create_child(child1, "child2")
+  AtuinStand.Tree.delete(child1, :decline)
+  # => {:error, :has_children}
+  AtuinStand.Tree.delete(child1, :cascade)
+  AtuinStand.Tree.get_nodes(tree)
+  # => [root]
   ```
 
   ## Traversing the tree

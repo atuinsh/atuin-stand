@@ -20,10 +20,10 @@ Please see the documentation for each specific implementation for installation a
 const tree = new Tree();
 const root = tree.root();
 root.id(); // => Symbol(ROOT)
-const child = root.createChild("id1").setData(myData);
+const child = root.createChild("id1").setData(someData);
 child.id(); // => "id1"
-child.createChild("id2").setData(otherData);
-child.getData();
+const child2 = child.createChild("id2").setData(otherData);
+child.getData(); // => someData
 ```
 
 ### Rust
@@ -34,8 +34,8 @@ let root = tree.root();
 root.id(); // => NodeID::Root
 let child = root.create_child("id1").set_data(some_data);
 child.id(); // => NodeID::id("id1");
-child.create_child("id2").set_data(other_data);
-child.get_data();
+let child2 = child.create_child("id2").set_data(other_data);
+child.get_data(); // => some_data
 ```
 
 ### Elixir
@@ -46,12 +46,10 @@ alias AtuinStand.Tree
 tree = Tree.new()
 root = Tree.root(tree)
 root.id # => :root
-child = Tree.create_child(root, "id1")
-Tree.set_data(child, some_data)
+child = Tree.create_child(root, "id1") |> Tree.set_data(child, some_data)
 child.id # => "id1"
-child2 = Tree.create_child(child, "id2")
-Node.set_data(child2, other_data)
-child2.get_data()
+child2 = Tree.create_child(child, "id2") |> Tree.set_data(child2, other_data)
+Tree.get_data(child) # => some_data
 ```
 
 ## API Overview
