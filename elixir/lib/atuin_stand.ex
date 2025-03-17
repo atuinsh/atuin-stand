@@ -23,29 +23,21 @@ defmodule AtuinStand do
   If creating the process fails, it returns an error tuple in the same form as is returned
   from `Agent.start_link/3`.
 
-  ### Serializing and deserializing a tree
+  ### Importing and exporting a tree
 
-  You can serialize a tree to a JSON string with `AtuinStand.Tree.serialize/1`.
-
-  ```elixir
-  tree_data = AtuinStand.Tree.serialize(tree)
-  ```
-
-  By default, the library uses the [Elixir JSON module](https://hexdocs.pm/elixir/JSON.html).
-  If you're using a version of Elixir that doesn't have the JSON module, or you want to use
-  a different JSON library, you can do so by configuring the application in your config file:
+  You can export the tree as a map with `AtuinStand.Tree.export/1`.
 
   ```elixir
-  # config/config.exs
-  config :atuin_stand, json_module: Jason
+  tree_data = AtuinStand.Tree.export(tree)
   ```
 
-  If you have previously serialized a tree using `AtuinStand.Tree.serialize/1`, you can use
-  `AtuinStand.Tree.deserialize/1` to restore the tree.
+  To import existing data to a new tree instance, use `AtuinStand.Tree.import/1`.
 
   ```elixir
-  tree = AtuinStand.Tree.deserialize(tree_data)
+  tree = AtuinStand.Tree.import(tree_data)
   ```
+
+  The data exported by `AtuinStand.Tree.export/1` can be safely serialized to JSON.
 
   ## Getting the root node
 
@@ -166,39 +158,10 @@ defmodule AtuinStand do
   `AtuinStand.Node.get_data/1`. To remain compatible with other `atuin-stand`
   implementations, the data must be a JSON-serializable map.
 
-  It's recommended to use string keys for the data, as during deserialization
-  all keys are converted to strings.
-
   ```elixir
   AtuinStand.Node.set_data(node, %{"name" => "Node 1"})
   AtuinStand.Node.get_data(node)
   # => %{"name" => "Node 1"}
   ```
   """
-
-  @doc false
-  def json_module() do
-    mod = Application.get_env(:atuin_stand, :json_module)
-
-    cond do
-      mod != nil ->
-        mod
-
-      has_json_module?() ->
-        JSON
-
-      true ->
-        raise "No JSON module found; please add one to your config using `config, :autin_stand, json_module: module`"
-    end
-  end
-
-  @doc false
-  def has_json_module?() do
-    try do
-      JSON.__info__(:functions)
-      true
-    rescue
-      _ -> false
-    end
-  end
 end

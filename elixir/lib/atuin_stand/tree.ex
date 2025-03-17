@@ -31,16 +31,19 @@ defmodule AtuinStand.Tree do
   end
 
   @doc """
-  Serializes the tree to a JSON string map. See `deserialize/1` for more information.
+  Exports the tree as an Elixir map.
+
+  To be compatible with other `atuin-stand` implementations, any user-defined data stored
+  in the tree should use string keys.
   """
-  @spec serialize(tree :: t()) :: String.t()
-  def serialize(%Tree{} = tree) do
+  @spec export(tree :: t()) :: map()
+  def export(%Tree{} = tree) do
     Agent.get(tree.pid, &Internals.export_data(&1))
-    |> JSON.encode!()
   end
 
   @doc """
-  Deserializes a JSON string generated with `serialize/1` to a tree.
+  Imports a tree from an Elixir map generated with `export/1`, or exported from
+  another `atuin-stand` implementation.
 
   Calls `Agent.start_link/3` to create a new process to manage the tree's state,
   and returns the tree, or an error tuple if `Agent.start_link/3` fails,
@@ -51,19 +54,17 @@ defmodule AtuinStand.Tree do
       iex> tree = AtuinStand.Tree.new()
       iex> root = AtuinStand.Tree.root(tree)
       iex> child = AtuinStand.Node.create_child(root, "child")
-      iex> AtuinStand.Node.set_data(child, %{name: "Child"})
-      iex> tree_data = AtuinStand.Tree.serialize(tree)
+      iex> AtuinStand.Node.set_data(child, %{"name" => "Child"})
+      iex> tree_data = AtuinStand.Tree.export(tree)
       iex> AtuinStand.Tree.destroy(tree)
-      iex> tree = AtuinStand.Tree.deserialize(tree_data)
+      iex> tree = AtuinStand.Tree.import(tree_data)
       iex> child = AtuinStand.Tree.node(tree, "child")
       %AtuinStand.Node{id: "child", tree: tree}
       iex> AtuinStand.Node.get_data(child)
       %{"name" => "Child"}
   """
-  @spec deserialize(data :: String.t()) :: t() | {:error, term()}
-  def deserialize(data) do
-    data = JSON.decode!(data)
-
+  @spec import(data :: map()) :: t() | {:error, term()}
+  def import(data) do
     case Agent.start_link(fn -> Internals.from_data(data) end) do
       {:ok, pid} ->
         %__MODULE__{pid: pid}
