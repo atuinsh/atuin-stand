@@ -16,5 +16,5 @@ end
 
 ## Documentation
 
-The docs can be found at <https://hexdocs.pm/atuin_stand/AtuinStand.Tree.html>.
+The docs can be found at <https://hexdocs.pm/atuin_stand/AtuinStand.html>.
 

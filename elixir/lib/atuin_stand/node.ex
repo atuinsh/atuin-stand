@@ -5,7 +5,7 @@ defmodule AtuinStand.Node do
   You can access the node's ID via the `id` property, and the tree it belongs to
   via the `tree` property.
 
-  For a more detailed overview of the API, see `AtuinStand.Tree`.
+  For a more detailed overview of the API, see `AtuinStand`.
 
   ## Examples
 
