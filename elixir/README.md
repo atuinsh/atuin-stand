@@ -9,7 +9,7 @@ The package can be installed by adding `atuin_stand` to your list of dependencie
 ```elixir
 def deps do
   [
-    {:atuin_stand, "~> 0.1.0"}
+    {:atuin_stand, "~> 0.1.1"}
   ]
 end
 ```
