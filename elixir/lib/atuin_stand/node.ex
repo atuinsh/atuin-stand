@@ -13,8 +13,8 @@ defmodule AtuinStand.Node do
 
   ## Raising API
 
-  Every function that can return an error has a raising version that raises an
-  error instead of returning an error tuple, and returns the node instead of an
+  Every function that can return an error tuple has a raising version that raises an
+  error instead of returning an error tuple, and returns the result instead of an
   ok tuple if successful.
 
   Each error tuple maps to a specific exception:

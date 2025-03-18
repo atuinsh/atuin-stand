@@ -58,7 +58,7 @@ defmodule AtuinStand do
   which has the ID `:root`.
 
   ```elixir
-  child = AtuinStand.Node.create_child(root, "child")
+  {:ok, child} = AtuinStand.Node.create_child(root, "child")
   child.id
   # => "child"
   ```
@@ -68,8 +68,8 @@ defmodule AtuinStand do
   pass the index as the third argument to `AtuinStand.Node.create_child/2`.
 
   ```elixir
-  child = AtuinStand.Node.create_child(root, "child1")
-  child = AtuinStand.Node.create_child(root, "child2", 0)
+  {:ok, child1} = AtuinStand.Node.create_child(root, "child1")
+  {:ok, child2} = AtuinStand.Node.create_child(root, "child2", 0)
   AtuinStand.Node.children(root)
   # => [child2, child1]
   ```
@@ -86,7 +86,7 @@ defmodule AtuinStand do
   You can get a node by ID with `AtuinStand.Tree.node/2`.
 
   ```elixir
-  node = AtuinStand.Tree.node(tree, "child")
+  {:ok, node} = AtuinStand.Tree.node(tree, "child")
   ```
 
   You can fetch all of the external nodes (leaves) or internal nodes (branches)
@@ -127,13 +127,13 @@ defmodule AtuinStand do
 
   ```elixir
   root = AtuinStand.Tree.root(tree)
-  child1 = AtuinStand.Node.create_child(root, "child1")
-  child2 = AtuinStand.Node.create_child(root, "child2")
+  {:ok, child1} = AtuinStand.Node.create_child(root, "child1")
+  {:ok, child2} = AtuinStand.Node.create_child(root, "child2")
   AtuinStand.Node.move_to(child2, child1)
   AtuinStand.Node.children(root)
-  # => [child1]
+  # => {:ok, [child1]}
   AtuinStand.Node.children(child1)
-  # => [child2]
+  # => {:ok, [child2]}
   ```
 
   You can also move a node to be directly before or after another node using
@@ -170,13 +170,13 @@ defmodule AtuinStand do
   ```elixir
   AtuinStand.Node.set_data(node, %{"name" => "Node 1"})
   AtuinStand.Node.get_data(node)
-  # => %{"name" => "Node 1"}
+  # => {:ok, %{"name" => "Node 1"}}
   ```
 
   ## Raising API
 
-  Every function that can return an error has a raising version that raises an
-  error instead of returning an error tuple, and returns the value directly instead
+  Every function that can return an error tuple has a raising version that raises an
+  error instead of returning an error tuple, and returns the result directly instead
   of an ok tuple if successful.
 
   Each error tuple maps to a specific exception:
