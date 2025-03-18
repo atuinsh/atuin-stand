@@ -21,17 +21,18 @@ defmodule AtuinStand.Internals do
 
     child_map = %{root: MapSet.new()}
 
-    Map.keys(data)
-    |> Enum.reduce(child_map, fn id, acc ->
-      Map.update(
-        acc,
-        data[id].parent || :root,
-        MapSet.put(Map.get(acc, data[id].parent || :root, MapSet.new()), id),
-        fn set ->
-          MapSet.put(set, id)
-        end
-      )
-    end)
+    child_map =
+      Map.keys(data)
+      |> Enum.reduce(child_map, fn id, acc ->
+        Map.update(
+          acc,
+          data[id].parent || :root,
+          MapSet.put(Map.get(acc, data[id].parent || :root, MapSet.new()), id),
+          fn set ->
+            MapSet.put(set, id)
+          end
+        )
+      end)
 
     %{
       data: data,
