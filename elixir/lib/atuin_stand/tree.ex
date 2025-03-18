@@ -3,11 +3,26 @@ defmodule AtuinStand.Tree do
   A generic, ordered tree.
 
   For a more detailed overview of the API, see `AtuinStand`.
+
+  ## Raising API
+
+  Every function that can return an error has a raising version that raises an
+  error instead of returning an error tuple, and returns the node instead of an
+  ok tuple if successful.
+
+  Each error tuple maps to a specific exception:
+
+  * `{:error, :not_found}` -> `AtuinStand.Error.NodeNotFound`
+  * `{:error, :duplicate_id}` -> `AtuinStand.Error.DuplicateNode`
+  * `{:error, :invalid_operation}` -> `AtuinStand.Error.InvalidOperation`
+  * `{:error, :invalid_data}` -> `AtuinStand.Error.InvalidData`
+  * `{:error, :has_children}` -> `AtuinStand.Error.HasChildren`
   """
 
   alias __MODULE__, as: Tree
   alias AtuinStand.Node
   alias AtuinStand.Internals
+  alias AtuinStand.Error
 
   defstruct [:pid]
 
@@ -53,15 +68,15 @@ defmodule AtuinStand.Tree do
 
       iex> tree = AtuinStand.Tree.new()
       iex> root = AtuinStand.Tree.root(tree)
-      iex> child = AtuinStand.Node.create_child(root, "child")
+      iex> {:ok, child} = AtuinStand.Node.create_child(root, "child")
       iex> AtuinStand.Node.set_data(child, %{"name" => "Child"})
       iex> tree_data = AtuinStand.Tree.export(tree)
       iex> AtuinStand.Tree.destroy(tree)
       iex> tree = AtuinStand.Tree.import(tree_data)
-      iex> child = AtuinStand.Tree.node(tree, "child")
-      %AtuinStand.Node{id: "child", tree: tree}
+      iex> {:ok, child} = AtuinStand.Tree.node(tree, "child")
+      {:ok, %AtuinStand.Node{id: "child", tree: tree}}
       iex> AtuinStand.Node.get_data(child)
-      %{"name" => "Child"}
+      {:ok, %{"name" => "Child"}}
   """
   @spec import(data :: map()) :: t() | {:error, term()}
   def import(data) do
@@ -111,21 +126,35 @@ defmodule AtuinStand.Tree do
       iex> tree = AtuinStand.Tree.new()
       iex> root = AtuinStand.Tree.root(tree)
       iex> AtuinStand.Node.create_child(root, "node1")
-      iex> node1 = AtuinStand.Tree.node(tree, "node1")
+      iex> {:ok, node1} = AtuinStand.Tree.node(tree, "node1")
       iex> node1.id
       "node1"
   """
-  @spec node(tree :: t(), id :: atom() | String.t()) :: Node.t() | {:error, atom()}
+  @spec node(tree :: t(), id :: atom() | String.t()) :: {:ok, Node.t()} | {:error, atom()}
   def node(%Tree{} = tree, id) do
     case {id, has_node(tree, id)} do
       {:root, _} ->
-        %Node{id: :root, tree: tree}
+        {:ok, %Node{id: :root, tree: tree}}
 
       {id, true} ->
-        %Node{id: id, tree: tree}
+        {:ok, %Node{id: id, tree: tree}}
 
       {_, false} ->
         {:error, :not_found}
+    end
+  end
+
+  @doc """
+  A raising version of `node/2`.
+  """
+  @spec node!(tree :: t(), id :: atom() | String.t()) :: Node.t()
+  def node!(%Tree{} = tree, id) do
+    case node(tree, id) do
+      {:ok, node} ->
+        node
+
+      {:error, :not_found} ->
+        raise Error.NodeNotFound, id: id
     end
   end
 
@@ -165,10 +194,10 @@ defmodule AtuinStand.Tree do
 
       iex> tree = AtuinStand.Tree.new()
       iex> root = AtuinStand.Tree.root(tree)
-      iex> node1 = AtuinStand.Node.create_child(root, "node1")
-      iex> node2 = AtuinStand.Node.create_child(root, "node2")
-      iex> node3 = AtuinStand.Node.create_child(root, "node3")
-      iex> node4 = AtuinStand.Node.create_child(node2, "node4")
+      iex> {:ok, node1} = AtuinStand.Node.create_child(root, "node1")
+      iex> {:ok, node2} = AtuinStand.Node.create_child(root, "node2")
+      iex> {:ok, node3} = AtuinStand.Node.create_child(root, "node3")
+      iex> {:ok, node4} = AtuinStand.Node.create_child(node2, "node4")
       iex> AtuinStand.Tree.nodes(tree, :dfs)
       [root, node1, node2, node4, node3]
       iex> AtuinStand.Tree.nodes(tree, :bfs)
@@ -193,10 +222,10 @@ defmodule AtuinStand.Tree do
       iex> root = AtuinStand.Tree.root(tree)
       iex> AtuinStand.Tree.external_nodes(tree)
       [root]
-      iex> node1 = AtuinStand.Node.create_child(root, "node1")
-      iex> node2 = AtuinStand.Node.create_child(root, "node2")
-      iex> node3 = AtuinStand.Node.create_child(root, "node3")
-      iex> node4 = AtuinStand.Node.create_child(node2, "node4")
+      iex> {:ok, node1} = AtuinStand.Node.create_child(root, "node1")
+      iex> {:ok, node2} = AtuinStand.Node.create_child(root, "node2")
+      iex> {:ok, node3} = AtuinStand.Node.create_child(root, "node3")
+      iex> {:ok, node4} = AtuinStand.Node.create_child(node2, "node4")
       iex> AtuinStand.Tree.external_nodes(tree, :dfs)
       [node1, node4, node3]
       iex> AtuinStand.Tree.external_nodes(tree, :bfs)
@@ -219,9 +248,9 @@ defmodule AtuinStand.Tree do
 
       iex> tree = AtuinStand.Tree.new()
       iex> root = AtuinStand.Tree.root(tree)
-      iex> node1 = AtuinStand.Node.create_child(root, "node1")
-      iex> node2 = AtuinStand.Node.create_child(root, "node2")
-      iex> node3 = AtuinStand.Node.create_child(node1, "node3")
+      iex> {:ok, node1} = AtuinStand.Node.create_child(root, "node1")
+      iex> {:ok, node2} = AtuinStand.Node.create_child(root, "node2")
+      iex> {:ok, node3} = AtuinStand.Node.create_child(node1, "node3")
       iex> _ = AtuinStand.Node.create_child(node2, "node4")
       iex> _ = AtuinStand.Node.create_child(node3, "node5")
       iex> AtuinStand.Tree.internal_nodes(tree, :dfs)

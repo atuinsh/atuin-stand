@@ -172,5 +172,19 @@ defmodule AtuinStand do
   AtuinStand.Node.get_data(node)
   # => %{"name" => "Node 1"}
   ```
+
+  ## Raising API
+
+  Every function that can return an error has a raising version that raises an
+  error instead of returning an error tuple, and returns the value directly instead
+  of an ok tuple if successful.
+
+  Each error tuple maps to a specific exception:
+
+  * `{:error, :not_found}` -> `AtuinStand.Error.NodeNotFound`
+  * `{:error, :duplicate_id}` -> `AtuinStand.Error.DuplicateNode`
+  * `{:error, :invalid_operation}` -> `AtuinStand.Error.InvalidOperation`
+  * `{:error, :invalid_data}` -> `AtuinStand.Error.InvalidData`
+  * `{:error, :has_children}` -> `AtuinStand.Error.HasChildren`
   """
 end

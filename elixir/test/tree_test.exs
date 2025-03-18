@@ -9,19 +9,19 @@ defmodule AtuinStandTreeTest do
   setup do
     tree = Tree.new()
     root = Tree.root(tree)
-    node1 = Node.create_child(root, "node1")
-    node2 = Node.create_child(root, "node2")
-    node3 = Node.create_child(root, "node3")
+    {:ok, node1} = Node.create_child(root, "node1")
+    {:ok, node2} = Node.create_child(root, "node2")
+    {:ok, node3} = Node.create_child(root, "node3")
 
-    node4 = Node.create_child(node1, "node4")
-    node5 = Node.create_child(node1, "node5")
+    {:ok, node4} = Node.create_child(node1, "node4")
+    {:ok, node5} = Node.create_child(node1, "node5")
 
-    node6 = Node.create_child(node2, "node6")
-    node7 = Node.create_child(node2, "node7")
-    node8 = Node.create_child(node2, "node8")
+    {:ok, node6} = Node.create_child(node2, "node6")
+    {:ok, node7} = Node.create_child(node2, "node7")
+    {:ok, node8} = Node.create_child(node2, "node8")
 
-    node9 = Node.create_child(node6, "node9")
-    node10 = Node.create_child(node6, "node10")
+    {:ok, node9} = Node.create_child(node6, "node9")
+    {:ok, node10} = Node.create_child(node6, "node10")
 
     {:ok,
      tree: tree,
@@ -56,9 +56,9 @@ defmodule AtuinStandTreeTest do
   end
 
   test "fetches nodes", context do
-    assert Tree.node(context.tree, :root) == context.root
-    assert Tree.node(context.tree, "node1") == context.node1
-    assert Tree.node(context.tree, "node10") == context.node10
+    assert Tree.node(context.tree, :root) == {:ok, context.root}
+    assert Tree.node(context.tree, "node1") == {:ok, context.node1}
+    assert Tree.node(context.tree, "node10") == {:ok, context.node10}
     assert Tree.node(context.tree, "node11") == {:error, :not_found}
   end
 end

@@ -47,9 +47,11 @@ alias AtuinStand.Node
 tree = Tree.new()
 root = Tree.root(tree)
 root.id # => :root
-child = Node.create_child(root, "id1") |> Node.set_data(some_data)
+{:ok, child} = Node.create_child(root, "id1")
+Node.set_data(child, some_data)
 child.id # => "id1"
-child2 = Node.create_child(child, "id2") |> Node.set_data(other_data)
+{:ok, child2} = Node.create_child(child, "id2")
+Node.set_data(child2, other_data)
 Node.get_data(child) # => some_data
 ```
 
